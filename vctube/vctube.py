@@ -6,6 +6,8 @@ import shutil
 from collections import OrderedDict
 from functools import partial
 from glob import glob
+from contextlib import closing
+from multiprocessing import Pool
 
 import pandas as pd
 import tqdm
@@ -13,8 +15,6 @@ import yt_dlp as youtube_dl
 from pydub import AudioSegment
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import NoTranscriptFound
-
-from .utils import makedirs, parallel_run
 
 
 class VCtube:
@@ -87,8 +87,7 @@ class VCtube:
                     full_names.append(full_name)
                     name = video + '.' + str(s).zfill(4) + '.wav'
                     names.append(name)
-                    subtitle[s]['text'] = ''.join(
-                        [c for c in subtitle[s]['text'] if c not in ('!', '?', ',', '.', '\n', '~', '"', "'")])
+                    subtitle[s]['text'] = subtitle[s]['text'].replace('\n', ' ')
                     text.append(subtitle[s]['text'])
                     start.append(subtitle[s]['start'])
                     if subtitle[s]['duration'] >= (subtitle[s + 1]['start'] - subtitle[s]['start']):
@@ -151,3 +150,27 @@ def split_with_caption(audio_path, skip_idx=0, out_ext="wav") -> list:
 
 def read_audio(audio_path):
     return AudioSegment.from_file(audio_path)
+
+
+def makedirs(path):
+    if not os.path.exists(path):
+        print(" [*] Make directories : {}".format(path))
+        os.makedirs(path)
+
+
+def parallel_run(fn, items, desc="", parallel=True):
+    results = []
+
+    if parallel:
+        with closing(Pool()) as pool:
+            for out in tqdm.tqdm(pool.imap_unordered(
+                    fn, items), total=len(items), desc=desc):
+                if out is not None:
+                    results.append(out)
+    else:
+        for item in tqdm.tqdm(items, total=len(items), desc=desc):
+            out = fn(item)
+            if out is not None:
+                results.append(out)
+
+    return results

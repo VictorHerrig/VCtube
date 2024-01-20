@@ -19,6 +19,6 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    install_requires=["pandas", "pydub", "tqdm", "youtube_dl", "youtube_transcript_api"],
-    python_requires='==3.6',
+    install_requires=["pandas", "pydub", "tqdm", "yt_dlp", "youtube_transcript_api"],
+    python_requires='>=3.6',
 )
