@@ -18,10 +18,11 @@ from youtube_transcript_api._errors import NoTranscriptFound
 
 
 class VCtube:
-    def __init__(self, output_dir: str, youtube_url: str, lang: str) -> None:
+    def __init__(self, output_dir: str, youtube_url: str, lang: str, ffmpeg_path: str = None) -> None:
         self.output_dir = output_dir
         self.youtube_url = youtube_url
         self.lang = lang
+        self.ffmpeg_path = ffmpeg_path
 
         # Delete directory if existing
         if os.path.exists(self.output_dir):
@@ -47,6 +48,8 @@ class VCtube:
             'outtmpl': download_path,  # 다운로드 경로 설정
             'ignoreerrors': True
         }
+        if self.ffmpeg_path is not None:
+            ydl_opts['ffmpeg_location'] = self.ffmpeg_path
 
         try:
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
